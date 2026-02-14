@@ -3,155 +3,262 @@ package com.vocalcoach.infrastructure.report.gateway;
 import com.alibaba.fastjson.JSON;
 import com.vocalcoach.domain.report.Report;
 import com.vocalcoach.domain.report.gateway.ReportGateway;
-import com.vocalcoach.infrastructure.report.dataobject.ReportDO;
-import com.vocalcoach.infrastructure.report.repository.ReportJpaRepository;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Component
 public class ReportGatewayImpl implements ReportGateway {
 
-    @Resource
-    private ReportJpaRepository reportRepository;
+    private static final String DATA_DIR = "data";
+    private static final String REPORTS_FILE = "reports.json";
+
+    private List<Report> reportsCache = new ArrayList<>();
+    private AtomicLong idGenerator = new AtomicLong(1);
+
+    @PostConstruct
+    public void init() {
+        ensureDataDir();
+        loadFromFile();
+    }
+
+    private void ensureDataDir() {
+        File dir = new File(DATA_DIR);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+    }
+
+    private void loadFromFile() {
+        File file = new File(DATA_DIR, REPORTS_FILE);
+        if (file.exists()) {
+            try {
+                String content = new String(Files.readAllBytes(file.toPath()));
+                reportsCache = JSON.parseArray(content, Report.class);
+                if (reportsCache == null) {
+                    reportsCache = new ArrayList<>();
+                }
+                long maxId = reportsCache.stream().mapToLong(r -> r.getId() != null ? r.getId() : 0).max().orElse(0);
+                idGenerator.set(maxId + 1);
+            } catch (IOException e) {
+                reportsCache = new ArrayList<>();
+            }
+        }
+    }
+
+    private void saveToFile() {
+        try {
+            String content = JSON.toJSONString(reportsCache);
+            Files.write(Paths.get(DATA_DIR, REPORTS_FILE), content.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public Report save(Report report) {
-        ReportDO reportDO = toDO(report);
-        ReportDO saved = reportRepository.save(reportDO);
-        return toEntity(saved);
+        if (report.getId() == null) {
+            report.setId(idGenerator.getAndIncrement());
+            reportsCache.add(report);
+        } else {
+            reportsCache.removeIf(r -> report.getId().equals(r.getId()));
+            reportsCache.add(report);
+        }
+        saveToFile();
+        return report;
     }
 
     @Override
     public List<Report> findAll() {
-        return reportRepository.findAll().stream()
-                .map(this::toEntity)
-                .collect(Collectors.toList());
+        return new ArrayList<>(reportsCache);
     }
 
     @Override
     public Optional<Report> findById(Long id) {
-        return reportRepository.findById(id).map(this::toEntity);
+        return reportsCache.stream()
+                .filter(r -> id.equals(r.getId()))
+                .findFirst();
     }
 
     @Override
     public void deleteById(Long id) {
-        reportRepository.deleteById(id);
+        reportsCache.removeIf(r -> id.equals(r.getId()));
+        saveToFile();
     }
 
     @Override
     public boolean existsById(Long id) {
-        return reportRepository.existsById(id);
+        return reportsCache.stream().anyMatch(r -> id.equals(r.getId()));
     }
 
     @Override
     public long count() {
-        return reportRepository.count();
+        return reportsCache.size();
     }
 
     @Override
     public Double getAverageScore() {
-        return reportRepository.getAverageScore();
+        if (reportsCache.isEmpty()) return null;
+        return reportsCache.stream()
+                .mapToInt(r -> r.getOverallScore() != null ? r.getOverallScore() : 0)
+                .average()
+                .orElse(0);
     }
 
     @Override
     public Integer getBestScore() {
-        return reportRepository.getBestScore();
+        return reportsCache.stream()
+                .mapToInt(r -> r.getOverallScore() != null ? r.getOverallScore() : 0)
+                .max()
+                .orElse(0);
     }
 
     @Override
     public Integer getWorstScore() {
-        return reportRepository.getWorstScore();
+        return reportsCache.stream()
+                .mapToInt(r -> r.getOverallScore() != null ? r.getOverallScore() : 0)
+                .min()
+                .orElse(0);
     }
 
     @Override
     public Double getAveragePitchScore() {
-        return reportRepository.getAveragePitchScore();
+        if (reportsCache.isEmpty()) return null;
+        return reportsCache.stream()
+                .filter(r -> r.getDimensions() != null && r.getDimensions().getPitch() != null)
+                .mapToInt(r -> r.getDimensions().getPitch())
+                .average()
+                .orElse(0);
     }
 
     @Override
     public Double getAverageRhythmScore() {
-        return reportRepository.getAverageRhythmScore();
+        if (reportsCache.isEmpty()) return null;
+        return reportsCache.stream()
+                .filter(r -> r.getDimensions() != null && r.getDimensions().getRhythm() != null)
+                .mapToInt(r -> r.getDimensions().getRhythm())
+                .average()
+                .orElse(0);
     }
 
     @Override
     public Double getAverageBreathScore() {
-        return reportRepository.getAverageBreathScore();
+        if (reportsCache.isEmpty()) return null;
+        return reportsCache.stream()
+                .filter(r -> r.getDimensions() != null && r.getDimensions().getBreath() != null)
+                .mapToInt(r -> r.getDimensions().getBreath())
+                .average()
+                .orElse(0);
     }
 
     @Override
     public Double getAverageVoiceScore() {
-        return reportRepository.getAverageVoiceScore();
+        if (reportsCache.isEmpty()) return null;
+        return reportsCache.stream()
+                .filter(r -> r.getDimensions() != null && r.getDimensions().getVoice() != null)
+                .mapToInt(r -> r.getDimensions().getVoice())
+                .average()
+                .orElse(0);
     }
 
     @Override
     public List<Report> findTop10ByOrderByTimestampDesc() {
-        return reportRepository.findTop10ByOrderByTimestampDesc().stream()
-                .map(this::toEntity)
+        return reportsCache.stream()
+                .sorted(Comparator.comparing(Report::getTimestamp, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(10)
                 .collect(Collectors.toList());
     }
 
-    private Report toEntity(ReportDO reportDO) {
-        Report report = new Report();
-        report.setId(reportDO.getId());
-        report.setSongName(reportDO.getSongName());
-        report.setOverallScore(reportDO.getOverallScore());
-        report.setTimestamp(reportDO.getTimestamp());
-
-        Report.Dimensions dims = new Report.Dimensions();
-        dims.setPitch(reportDO.getPitchScore());
-        dims.setRhythm(reportDO.getRhythmScore());
-        dims.setBreath(reportDO.getBreathScore());
-        dims.setVoice(reportDO.getVoiceScore());
-        report.setDimensions(dims);
-
-        if (reportDO.getSuggestions() != null) {
-            try {
-                List<Report.Suggestion> suggestions = JSON.parseArray(reportDO.getSuggestions(), Report.Suggestion.class);
-                report.setSuggestions(suggestions);
-            } catch (Exception e) {
-                report.setSuggestions(new ArrayList<>());
-            }
-        }
-
-        if (reportDO.getTrainingRecommendations() != null) {
-            try {
-                List<Report.TrainingRecommendation> recommendations = JSON.parseArray(reportDO.getTrainingRecommendations(), Report.TrainingRecommendation.class);
-                report.setTrainingRecommendations(recommendations);
-            } catch (Exception e) {
-                report.setTrainingRecommendations(new ArrayList<>());
-            }
-        }
-
-        return report;
-    }
-
-    private ReportDO toDO(Report report) {
-        ReportDO reportDO = new ReportDO();
-        reportDO.setId(report.getId());
-        reportDO.setSongName(report.getSongName());
-        reportDO.setOverallScore(report.getOverallScore());
-        reportDO.setTimestamp(report.getTimestamp());
-
-        if (report.getDimensions() != null) {
-            reportDO.setPitchScore(report.getDimensions().getPitch());
-            reportDO.setRhythmScore(report.getDimensions().getRhythm());
-            reportDO.setBreathScore(report.getDimensions().getBreath());
-            reportDO.setVoiceScore(report.getDimensions().getVoice());
-        }
-
-        if (report.getSuggestions() != null) {
-            reportDO.setSuggestions(JSON.toJSONString(report.getSuggestions()));
-        }
-
-        if (report.getTrainingRecommendations() != null) {
-            reportDO.setTrainingRecommendations(JSON.toJSONString(report.getTrainingRecommendations()));
-        }
-
-        return reportDO;
-    }
+    // ==================== 以下为数据库实现代码，待数据库就绪后启用 ====================
+    // @Resource
+    // private ReportJpaRepository reportRepository;
+    //
+    // @Override
+    // public Report save(Report report) {
+    //     ReportDO reportDO = toDO(report);
+    //     ReportDO saved = reportRepository.save(reportDO);
+    //     return toEntity(saved);
+    // }
+    //
+    // @Override
+    // public List<Report> findAll() {
+    //     return reportRepository.findAll().stream()
+    //             .map(this::toEntity)
+    //             .collect(Collectors.toList());
+    // }
+    //
+    // @Override
+    // public Optional<Report> findById(Long id) {
+    //     return reportRepository.findById(id).map(this::toEntity);
+    // }
+    //
+    // @Override
+    // public void deleteById(Long id) {
+    //     reportRepository.deleteById(id);
+    // }
+    //
+    // @Override
+    // public boolean existsById(Long id) {
+    //     return reportRepository.existsById(id);
+    // }
+    //
+    // @Override
+    // public long count() {
+    //     return reportRepository.count();
+    // }
+    //
+    // @Override
+    // public Double getAverageScore() {
+    //     return reportRepository.getAverageScore();
+    // }
+    //
+    // @Override
+    // public Integer getBestScore() {
+    //     return reportRepository.getBestScore();
+    // }
+    //
+    // @Override
+    // public Integer getWorstScore() {
+    //     return reportRepository.getWorstScore();
+    // }
+    //
+    // @Override
+    // public Double getAveragePitchScore() {
+    //     return reportRepository.getAveragePitchScore();
+    // }
+    //
+    // @Override
+    // public Double getAverageRhythmScore() {
+    //     return reportRepository.getAverageRhythmScore();
+    // }
+    //
+    // @Override
+    // public Double getAverageBreathScore() {
+    //     return reportRepository.getAverageBreathScore();
+    // }
+    //
+    // @Override
+    // public Double getAverageVoiceScore() {
+    //     return reportRepository.getAverageVoiceScore();
+    // }
+    //
+    // @Override
+    // public List<Report> findTop10ByOrderByTimestampDesc() {
+    //     return reportRepository.findTop10ByOrderByTimestampDesc().stream()
+    //             .map(this::toEntity)
+    //             .collect(Collectors.toList());
+    // }
+    //
+    // private Report toEntity(ReportDO reportDO) { ... }
+    // private ReportDO toDO(Report report) { ... }
 }

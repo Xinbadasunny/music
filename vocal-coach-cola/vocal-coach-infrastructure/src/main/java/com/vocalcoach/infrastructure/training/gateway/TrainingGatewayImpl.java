@@ -1,32 +1,72 @@
 package com.vocalcoach.infrastructure.training.gateway;
 
+import com.alibaba.fastjson.JSON;
 import com.vocalcoach.domain.training.Course;
 import com.vocalcoach.domain.training.TrainingProgress;
 import com.vocalcoach.domain.training.gateway.TrainingGateway;
-import com.vocalcoach.infrastructure.training.dataobject.TrainingProgressDO;
-import com.vocalcoach.infrastructure.training.repository.TrainingProgressRepository;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Component
 public class TrainingGatewayImpl implements TrainingGateway {
 
-    @Resource
-    private TrainingProgressRepository progressRepository;
+    private static final String DATA_DIR = "data";
+    private static final String PROGRESS_FILE = "training_progress.json";
 
     private static final List<Course> DEFAULT_COURSES = new ArrayList<>();
+    private List<TrainingProgress> progressCache = new ArrayList<>();
+    private AtomicLong idGenerator = new AtomicLong(1);
 
     @PostConstruct
-    public void initCourses() {
+    public void init() {
+        ensureDataDir();
         if (DEFAULT_COURSES.isEmpty()) {
             DEFAULT_COURSES.addAll(createDefaultCourses());
+        }
+        loadFromFile();
+    }
+
+    private void ensureDataDir() {
+        File dir = new File(DATA_DIR);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+    }
+
+    private void loadFromFile() {
+        File file = new File(DATA_DIR, PROGRESS_FILE);
+        if (file.exists()) {
+            try {
+                String content = new String(Files.readAllBytes(file.toPath()));
+                progressCache = JSON.parseArray(content, TrainingProgress.class);
+                if (progressCache == null) {
+                    progressCache = new ArrayList<>();
+                }
+                long maxId = progressCache.stream().mapToLong(p -> p.getId() != null ? p.getId() : 0).max().orElse(0);
+                idGenerator.set(maxId + 1);
+            } catch (IOException e) {
+                progressCache = new ArrayList<>();
+            }
+        }
+    }
+
+    private void saveToFile() {
+        try {
+            String content = JSON.toJSONString(progressCache);
+            Files.write(Paths.get(DATA_DIR, PROGRESS_FILE), content.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -153,27 +193,34 @@ public class TrainingGatewayImpl implements TrainingGateway {
 
     @Override
     public List<TrainingProgress> findAllProgress() {
-        return progressRepository.findAll().stream()
-                .map(this::toEntity)
-                .collect(Collectors.toList());
+        return new ArrayList<>(progressCache);
     }
 
     @Override
     public Optional<TrainingProgress> findProgress(String courseId, String exerciseId) {
-        return progressRepository.findByCourseIdAndExerciseId(courseId, exerciseId)
-                .map(this::toEntity);
+        return progressCache.stream()
+                .filter(p -> courseId.equals(p.getCourseId()) && exerciseId.equals(p.getExerciseId()))
+                .findFirst();
     }
 
     @Override
     public TrainingProgress saveProgress(TrainingProgress progress) {
-        TrainingProgressDO progressDO = toDO(progress);
-        TrainingProgressDO saved = progressRepository.save(progressDO);
-        return toEntity(saved);
+        if (progress.getId() == null) {
+            progress.setId(idGenerator.getAndIncrement());
+            progressCache.add(progress);
+        } else {
+            progressCache.removeIf(p -> progress.getId().equals(p.getId()));
+            progressCache.add(progress);
+        }
+        saveToFile();
+        return progress;
     }
 
     @Override
     public int countCompletedExercises() {
-        return progressRepository.countByCompletedTrue();
+        return (int) progressCache.stream()
+                .filter(p -> Boolean.TRUE.equals(p.getCompleted()))
+                .count();
     }
 
     @Override
@@ -183,27 +230,56 @@ public class TrainingGatewayImpl implements TrainingGateway {
                 .sum();
     }
 
-    private TrainingProgress toEntity(TrainingProgressDO progressDO) {
-        TrainingProgress progress = new TrainingProgress();
-        progress.setId(progressDO.getId());
-        progress.setCourseId(progressDO.getCourseId());
-        progress.setExerciseId(progressDO.getExerciseId());
-        progress.setBestScore(progressDO.getBestScore());
-        progress.setAttempts(progressDO.getAttempts());
-        progress.setCompleted(progressDO.getCompleted());
-        progress.setLastPracticeTime(progressDO.getLastPracticeTime());
-        return progress;
-    }
-
-    private TrainingProgressDO toDO(TrainingProgress progress) {
-        TrainingProgressDO progressDO = new TrainingProgressDO();
-        progressDO.setId(progress.getId());
-        progressDO.setCourseId(progress.getCourseId());
-        progressDO.setExerciseId(progress.getExerciseId());
-        progressDO.setBestScore(progress.getBestScore());
-        progressDO.setAttempts(progress.getAttempts());
-        progressDO.setCompleted(progress.getCompleted());
-        progressDO.setLastPracticeTime(progress.getLastPracticeTime());
-        return progressDO;
-    }
+    // ==================== 以下为数据库实现代码，待数据库就绪后启用 ====================
+    // @Resource
+    // private TrainingProgressRepository progressRepository;
+    //
+    // @Override
+    // public List<TrainingProgress> findAllProgress() {
+    //     return progressRepository.findAll().stream()
+    //             .map(this::toEntity)
+    //             .collect(Collectors.toList());
+    // }
+    //
+    // @Override
+    // public Optional<TrainingProgress> findProgress(String courseId, String exerciseId) {
+    //     return progressRepository.findByCourseIdAndExerciseId(courseId, exerciseId)
+    //             .map(this::toEntity);
+    // }
+    //
+    // @Override
+    // public TrainingProgress saveProgress(TrainingProgress progress) {
+    //     TrainingProgressDO progressDO = toDO(progress);
+    //     TrainingProgressDO saved = progressRepository.save(progressDO);
+    //     return toEntity(saved);
+    // }
+    //
+    // @Override
+    // public int countCompletedExercises() {
+    //     return progressRepository.countByCompletedTrue();
+    // }
+    //
+    // private TrainingProgress toEntity(TrainingProgressDO progressDO) {
+    //     TrainingProgress progress = new TrainingProgress();
+    //     progress.setId(progressDO.getId());
+    //     progress.setCourseId(progressDO.getCourseId());
+    //     progress.setExerciseId(progressDO.getExerciseId());
+    //     progress.setBestScore(progressDO.getBestScore());
+    //     progress.setAttempts(progressDO.getAttempts());
+    //     progress.setCompleted(progressDO.getCompleted());
+    //     progress.setLastPracticeTime(progressDO.getLastPracticeTime());
+    //     return progress;
+    // }
+    //
+    // private TrainingProgressDO toDO(TrainingProgress progress) {
+    //     TrainingProgressDO progressDO = new TrainingProgressDO();
+    //     progressDO.setId(progress.getId());
+    //     progressDO.setCourseId(progress.getCourseId());
+    //     progressDO.setExerciseId(progress.getExerciseId());
+    //     progressDO.setBestScore(progress.getBestScore());
+    //     progressDO.setAttempts(progress.getAttempts());
+    //     progressDO.setCompleted(progress.getCompleted());
+    //     progressDO.setLastPracticeTime(progress.getLastPracticeTime());
+    //     return progressDO;
+    // }
 }
