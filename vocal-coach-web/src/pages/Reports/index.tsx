@@ -1,17 +1,88 @@
 import { useEffect } from 'react'
-import { Card, Table, Tag, Typography, Spin, Empty, Popconfirm, Button, Space } from 'antd'
-import { DeleteOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import { Typography, Spin, Empty, Popconfirm, Button } from 'antd'
+import { DeleteOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons'
 import { useReportStore } from '../../store'
 import type { Report } from '../../types'
+import './index.css'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 
 const getScoreColor = (score: number) => {
-  if (score >= 90) return 'green'
-  if (score >= 80) return 'blue'
-  if (score >= 70) return 'orange'
-  return 'red'
+  if (score >= 90) return '#52c41a'
+  if (score >= 80) return '#1890ff'
+  if (score >= 70) return '#fa8c16'
+  return '#ff4d4f'
+}
+
+const getScoreLevel = (score: number) => {
+  if (score >= 90) return '优秀'
+  if (score >= 80) return '良好'
+  if (score >= 70) return '及格'
+  return '需努力'
+}
+
+// 圆环进度条组件
+const CircularProgress = ({ score, size = 80, strokeWidth = 8 }: { score: number; size?: number; strokeWidth?: number }) => {
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const offset = circumference - (score / 100) * circumference
+  const color = getScoreColor(score)
+
+  return (
+    <div className="circular-progress" style={{ width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle
+          stroke="#f0f0f0"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{
+            transition: 'stroke-dashoffset 0.5s ease-in-out',
+          }}
+        />
+      </svg>
+      <div className="progress-text">
+        <span className="score-value" style={{ color }}>{score}</span>
+        <span className="score-label">分</span>
+      </div>
+    </div>
+  )
+}
+
+// 维度进度条组件
+const DimensionBar = ({ label, score }: { label: string; score: number }) => {
+  const color = getScoreColor(score)
+  
+  return (
+    <div className="dimension-bar">
+      <div className="dimension-header">
+        <span className="dimension-label">{label}</span>
+        <span className="dimension-score" style={{ color }}>{score}分</span>
+      </div>
+      <div className="progress-track">
+        <div 
+          className="progress-fill" 
+          style={{ 
+            width: `${score}%`,
+            backgroundColor: color
+          }}
+        />
+      </div>
+    </div>
+  )
 }
 
 export default function ReportsPage() {
@@ -25,97 +96,87 @@ export default function ReportsPage() {
     await deleteReport(id)
   }
 
-  const columns: ColumnsType<Report> = [
-    {
-      title: '歌曲',
-      dataIndex: 'songName',
-      key: 'songName',
-    },
-    {
-      title: '总分',
-      dataIndex: 'overallScore',
-      key: 'overallScore',
-      render: (score: number) => (
-        <Tag color={getScoreColor(score)} style={{ fontSize: 16 }}>
-          {score}分
-        </Tag>
-      ),
-      sorter: (a, b) => a.overallScore - b.overallScore,
-    },
-    {
-      title: '音准',
-      key: 'pitch',
-      render: (_, record) => `${record.dimensions?.pitch || 0}分`,
-    },
-    {
-      title: '节奏',
-      key: 'rhythm',
-      render: (_, record) => `${record.dimensions?.rhythm || 0}分`,
-    },
-    {
-      title: '气息',
-      key: 'breath',
-      render: (_, record) => `${record.dimensions?.breath || 0}分`,
-    },
-    {
-      title: '音色',
-      key: 'voice',
-      render: (_, record) => `${record.dimensions?.voice || 0}分`,
-    },
-    {
-      title: '时间',
-      dataIndex: 'timestamp',
-      key: 'timestamp',
-      render: (timestamp: string) => {
-        if (!timestamp) return '-'
-        const date = new Date(timestamp)
-        return date.toLocaleString('zh-CN')
-      },
-      sorter: (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      defaultSortOrder: 'descend',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_, record) => (
-        <Space>
-          <Popconfirm
-            title="确定删除这条报告吗？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ]
+  const formatTime = (timestamp: string) => {
+    if (!timestamp) return '-'
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    
+    if (days === 0) {
+      return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    } else if (days === 1) {
+      return '昨天'
+    } else if (days < 7) {
+      return `${days}天前`
+    } else {
+      return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+    }
+  }
 
   return (
-    <div className="page-container">
-      <Title level={3}>评测报告</Title>
+    <div className="reports-page">
+      <header className="page-header">
+        <Title level={4}>评测报告</Title>
+        <Text type="secondary" className="report-count">{reports.length} 条记录</Text>
+      </header>
 
-      <Card>
-        <Spin spinning={loading}>
+      <Spin spinning={loading} tip="加载中...">
+        <div className="reports-list">
           {reports.length === 0 ? (
-            <Empty description="暂无评测报告" />
-          ) : (
-            <Table
-              columns={columns}
-              dataSource={reports}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `共 ${total} 条记录`,
-              }}
+            <Empty 
+              description="暂无评测报告" 
+              style={{ marginTop: '60px' }}
             />
+          ) : (
+            reports
+              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+              .map((report) => (
+              <div key={report.id} className="report-card">
+                <div className="card-header">
+                  <div className="song-info">
+                    <h3 className="song-name">{report.songName}</h3>
+                    <span className="report-time">{formatTime(report.timestamp)}</span>
+                  </div>
+                  <CircularProgress score={report.overallScore} size={72} strokeWidth={7} />
+                </div>
+
+                <div className="score-level">
+                  <span className="level-label">评价：</span>
+                  <span className="level-value" style={{ color: getScoreColor(report.overallScore) }}>
+                    {getScoreLevel(report.overallScore)}
+                  </span>
+                </div>
+
+                <div className="dimensions-section">
+                  <DimensionBar label="音准" score={report.dimensions?.pitch || 0} />
+                  <DimensionBar label="节奏" score={report.dimensions?.rhythm || 0} />
+                  <DimensionBar label="气息" score={report.dimensions?.breath || 0} />
+                  <DimensionBar label="音色" score={report.dimensions?.voice || 0} />
+                </div>
+
+                <div className="card-footer">
+                  <Popconfirm
+                    title="确定删除这条报告吗？"
+                    onConfirm={() => handleDelete(report.id)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button 
+                      type="text" 
+                      danger 
+                      icon={<DeleteOutlined />}
+                      className="delete-button"
+                    >
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </div>
+              </div>
+            ))
           )}
-        </Spin>
-      </Card>
+        </div>
+      </Spin>
     </div>
   )
 }

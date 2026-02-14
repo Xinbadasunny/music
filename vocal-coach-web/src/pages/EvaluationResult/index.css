@@ -1,0 +1,201 @@
+.evaluation-result-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-section h2 {
+  margin: 0;
+}
+
+.score-card {
+  text-align: center;
+}
+
+.total-score-section {
+  padding: 20px 0;
+}
+
+.score-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.score-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.score-value {
+  font-size: 48px;
+  font-weight: bold;
+  fill: #1890ff;
+}
+
+.score-label {
+  font-size: 14px;
+  fill: #8c8c8c;
+}
+
+.score-level {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 8px 24px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.score-level-优秀 {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  color: white;
+}
+
+.score-level-良好 {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  color: white;
+}
+
+.score-level-及格 {
+  background: linear-gradient(135deg, #fa8c16 0%, #ffa940 100%);
+  color: white;
+}
+
+.score-level-需改进 {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  color: white;
+}
+
+.dimensions-card {
+  height: 100%;
+}
+
+.dimension-item {
+  padding: 8px 0;
+}
+
+.dimension-header {
+  margin-bottom: 8px;
+}
+
+.dimension-icon {
+  font-size: 18px;
+}
+
+.strengths-card,
+.weaknesses-card {
+  height: 100%;
+}
+
+.strength-tag,
+.weakness-tag {
+  min-width: 28px;
+  text-align: center;
+}
+
+.suggestions-card .ant-list-item {
+  display: block;
+}
+
+.ai-comment-card {
+  background: linear-gradient(135deg, #f0f5ff 0%, #e6f7ff 100%);
+  border: none;
+}
+
+.ai-comment-text {
+  font-size: 16px;
+  line-height: 1.8;
+  margin: 0;
+  color: #1f1f1f;
+}
+
+.recommended-courses-card {
+  margin-top: 16px;
+}
+
+.course-card {
+  text-align: center;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.course-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.course-name {
+  margin: 8px 0 !important;
+  font-size: 18px;
+}
+
+.course-description {
+  display: block;
+  margin-bottom: 12px;
+  min-height: 40px;
+}
+
+.course-action {
+  margin-top: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+  padding: 24px 0;
+}
+
+.page-loading,
+.page-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 16px;
+  color: #8c8c8c;
+}
+
+@media (max-width: 768px) {
+  .evaluation-result-container {
+    padding: 16px;
+  }
+
+  .score-circle {
+    width: 160px;
+    height: 160px;
+  }
+
+  .score-value {
+    font-size: 36px;
+  }
+
+  .score-level {
+    font-size: 16px;
+    padding: 6px 16px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons button {
+    width: 100%;
+  }
+}

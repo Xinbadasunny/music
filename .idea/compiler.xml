@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -19,8 +20,8 @@
         <module name="vocal-coach-adapter" />
         <module name="vocal-coach-client" />
         <module name="vocal-coach-infrastructure" />
-        <module name="vocal-coach-domain" />
         <module name="vocal-coach-app" />
+        <module name="vocal-coach-domain" />
         <module name="vocal-coach-start" />
       </profile>
     </annotationProcessing>

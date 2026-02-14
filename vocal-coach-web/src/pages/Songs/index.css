@@ -1,0 +1,207 @@
+/* 移动端 H5 风格歌曲页面样式 */
+
+.songs-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 24px;
+}
+
+/* 顶部搜索栏 */
+.search-header {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 16px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.search-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.search-input {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.search-input input {
+  border-radius: 24px 0 0 24px;
+  height: 44px;
+  font-size: 15px;
+}
+
+.search-input .ant-btn {
+  border-radius: 0 24px 24px 0;
+  height: 44px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 16px;
+}
+
+/* 分类标签横向滚动 */
+.category-scroll {
+  display: flex;
+  gap: 12px;
+  padding: 16px 16px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.category-tag {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.category-tag.active {
+  background: white;
+  color: #667eea;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-tag:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 加载容器 */
+.loading-container {
+  min-height: 200px;
+}
+
+/* 空状态 */
+.empty-container {
+  padding: 60px 20px;
+  color: white;
+}
+
+.empty-container .ant-empty-description {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 歌曲列表 */
+.songs-list {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 歌曲卡片 */
+.song-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.song-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.song-card .ant-card-body {
+  padding: 16px;
+}
+
+/* 歌曲头部 */
+.song-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.song-main-info {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.song-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.song-artist {
+  font-size: 14px;
+  color: #999;
+}
+
+.difficulty-tag {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* 歌曲元信息 */
+.song-meta {
+  display: flex;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-icon {
+  font-size: 14px;
+}
+
+.meta-text {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 375px) {
+  .search-title {
+    font-size: 20px;
+  }
+  
+  .song-name {
+    font-size: 16px;
+  }
+  
+  .category-tag {
+    padding: 6px 16px;
+    font-size: 13px;
+  }
+}
+
+/* 加载动画优化 */
+.ant-spin-dot-item {
+  background-color: white;
+}

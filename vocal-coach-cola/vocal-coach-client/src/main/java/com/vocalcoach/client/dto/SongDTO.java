@@ -16,6 +16,7 @@ public class SongDTO implements Serializable {
     private Integer bpm;
     private String key;
     private String timeSignature;
+    private String audioPath;
     private List<MelodyNote> melodyPattern;
 
     @Data

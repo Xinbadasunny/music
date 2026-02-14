@@ -11,4 +11,6 @@ public interface SongServiceI {
     SingleResponse<SongDTO> getSongById(Long id);
 
     MultiResponse<SongDTO> searchSongs(String keyword);
+
+    SingleResponse<SongDTO> createSong(SongDTO songDTO);
 }

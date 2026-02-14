@@ -1,0 +1,399 @@
+/* 移动端 H5 风格主容器 */
+.training-page-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 0;
+}
+
+/* 移动端顶部标题栏 */
+.mobile-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px 16px 24px;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
+}
+
+.mobile-header h3 {
+  color: white !important;
+  margin: 0 0 4px 0 !important;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.mobile-header .ant-typography {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+}
+
+/* 课程列表容器 */
+.course-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 移动端课程卡片 */
+.course-card-mobile {
+  border-radius: 16px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.course-card-mobile:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.course-card-inner {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+
+/* 左侧图标区域 */
+.course-icon-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.course-icon-bg {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.course-icon {
+  font-size: 28px;
+}
+
+/* 右侧内容区域 */
+.course-info-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.course-header {
+  margin-bottom: 8px;
+}
+
+.course-title {
+  margin: 0 0 4px 0 !important;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.course-description {
+  margin: 0 !important;
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.4;
+}
+
+.course-stats {
+  margin-bottom: 8px;
+}
+
+.stat-text {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* 进度条区域 */
+.course-progress-section {
+  margin-top: 8px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.progress-percent {
+  font-size: 14px;
+  color: #667eea;
+}
+
+.progress-bar {
+  margin: 0;
+}
+
+/* 右侧箭头 */
+.course-arrow {
+  flex-shrink: 0;
+  color: #d9d9d9;
+  font-size: 20px;
+}
+
+/* 移动端抽屉 */
+.course-drawer-mobile .ant-drawer-content {
+  background: #f5f7fa;
+}
+
+.course-drawer-mobile .ant-drawer-body {
+  padding: 0;
+}
+
+/* 抽屉内容 */
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 抽屉头部 */
+.drawer-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 16px;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-button {
+  color: white;
+  padding: 0;
+  height: auto;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.back-button:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.course-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.course-icon-large {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.course-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-course-title {
+  color: white !important;
+  margin: 0 0 4px 0 !important;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.drawer-course-desc {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* 练习列表 */
+.exercise-list-mobile {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.exercise-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.exercise-list-header .ant-typography {
+  font-size: 15px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* 练习项卡片 */
+.exercise-card-mobile {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+.exercise-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exercise-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-number-mobile {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.exercise-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.exercise-name-mobile {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.trophy-icon {
+  color: #faad14;
+  font-size: 14px;
+}
+
+.exercise-desc-mobile {
+  margin: 0 0 6px 0 !important;
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.4;
+}
+
+.exercise-meta {
+  display: flex;
+  gap: 8px;
+}
+
+.meta-text {
+  font-size: 11px;
+  color: #999;
+}
+
+.exercise-right {
+  flex-shrink: 0;
+}
+
+/* 状态徽章 */
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.locked {
+  background: #f5f5f5;
+  color: #8c8c8c;
+}
+
+.status-badge.completed {
+  background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+  color: #52c41a;
+}
+
+.start-button {
+  border-radius: 20px;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 13px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.start-button:active {
+  transform: scale(0.95);
+}
+
+/* 已完成状态 */
+.exercise-card-mobile.completed {
+  background: linear-gradient(135deg, #f6ffed 0%, #f0f9ff 100%);
+  border: 1px solid #b7eb8f;
+}
+
+.exercise-card-mobile.completed .exercise-number-mobile {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+}
+
+/* 锁定状态 */
+.exercise-card-mobile.locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 滚动条美化 */
+.exercise-list-mobile::-webkit-scrollbar {
+  width: 4px;
+}
+
+.exercise-list-mobile::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.exercise-list-mobile::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 2px;
+}
+
+.exercise-list-mobile::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* 响应式适配 */
+@media (min-width: 768px) {
+  .training-page-container {
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  }
+}

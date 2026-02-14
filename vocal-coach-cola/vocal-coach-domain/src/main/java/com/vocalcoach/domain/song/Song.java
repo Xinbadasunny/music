@@ -13,6 +13,7 @@ public class Song {
     private Integer bpm;
     private String key;
     private String timeSignature;
+    private String audioPath;
     private List<MelodyNote> melodyPattern;
 
     @Data

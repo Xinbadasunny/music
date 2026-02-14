@@ -51,4 +51,12 @@ public class SongServiceImpl implements SongServiceI {
                 .collect(Collectors.toList());
         return MultiResponse.of(dtoList);
     }
+
+    @Override
+    public SingleResponse<SongDTO> createSong(SongDTO songDTO) {
+        Song song = songAssembler.toEntity(songDTO);
+        song.setId(songGateway.count() + 1);
+        Song savedSong = songGateway.save(song);
+        return SingleResponse.of(songAssembler.toDTO(savedSong));
+    }
 }

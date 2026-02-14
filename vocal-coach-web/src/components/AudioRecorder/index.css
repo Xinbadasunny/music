@@ -1,0 +1,118 @@
+.audio-recorder {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.recorder-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.record-button {
+  height: 60px;
+  padding: 0 40px;
+  font-size: 18px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.record-button:hover {
+  background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.recorder-hint {
+  font-size: 13px;
+}
+
+.recorder-recording {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pulse-dot {
+  width: 16px;
+  height: 16px;
+  background-color: #ff4d4f;
+  border-radius: 50%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.pulse-dot.paused {
+  animation: none;
+  background-color: #faad14;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+.recording-time {
+  font-size: 32px;
+  font-family: 'SF Mono', 'Monaco', monospace;
+  color: #333;
+}
+
+.recording-progress {
+  width: 100%;
+  max-width: 300px;
+}
+
+.recording-controls {
+  margin-top: 8px;
+}
+
+.recorder-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.recording-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 12px;
+}
+
+.recording-result .success-icon {
+  font-size: 32px;
+  color: #52c41a;
+}
+
+.result-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.result-controls {
+  flex-wrap: wrap;
+  justify-content: center;
+}

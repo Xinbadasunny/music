@@ -24,6 +24,10 @@
             <artifactId>vocal-coach-domain</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.vocalcoach</groupId>
+            <artifactId>vocal-coach-infrastructure</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>

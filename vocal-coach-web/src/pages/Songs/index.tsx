@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Card, Input, Select, Row, Col, Tag, Typography, Spin, Empty } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { Input, Tag, Spin, Empty, Card } from 'antd'
+import { SearchOutlined, FireOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { useSongStore } from '../../store'
 
-const { Title } = Typography
 const { Search } = Input
 
 const categories = ['全部', '儿歌', '经典', '流行']
@@ -46,54 +45,69 @@ export default function SongsPage() {
   }
 
   return (
-    <div className="page-container">
-      <Title level={3}>歌曲库</Title>
+    <div className="songs-page">
+      {/* 顶部搜索栏 */}
+      <div className="search-header">
+        <div className="search-title">歌曲库</div>
+        <Search
+          placeholder="搜索歌曲或歌手"
+          allowClear
+          enterButton={<SearchOutlined />}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onSearch={handleSearch}
+          className="search-input"
+        />
+      </div>
 
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={8}>
-          <Search
-            placeholder="搜索歌曲或歌手"
-            allowClear
-            enterButton={<SearchOutlined />}
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onSearch={handleSearch}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Select
-            style={{ width: '100%' }}
-            value={currentCategory}
-            onChange={handleCategoryChange}
-            options={categories.map((cat) => ({ label: cat, value: cat }))}
-          />
-        </Col>
-      </Row>
+      {/* 分类标签横向滚动 */}
+      <div className="category-scroll">
+        {categories.map((cat) => (
+          <div
+            key={cat}
+            className={`category-tag ${currentCategory === cat ? 'active' : ''}`}
+            onClick={() => handleCategoryChange(cat)}
+          >
+            {cat}
+          </div>
+        ))}
+      </div>
 
-      <Spin spinning={loading}>
+      {/* 歌曲列表卡片式展示 */}
+      <Spin spinning={loading} className="loading-container">
         {songs.length === 0 ? (
-          <Empty description="暂无歌曲" />
+          <Empty description="暂无歌曲" className="empty-container" />
         ) : (
-          <Row gutter={[16, 16]}>
+          <div className="songs-list">
             {songs.map((song) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={song.id}>
-                <Card
-                  hoverable
-                  title={song.name}
-                  extra={
-                    <Tag color={difficultyColors[song.difficulty]}>
-                      {difficultyLabels[song.difficulty]}
-                    </Tag>
-                  }
-                >
-                  <p><strong>歌手：</strong>{song.artist}</p>
-                  <p><strong>分类：</strong>{song.category}</p>
-                  <p><strong>BPM：</strong>{song.bpm}</p>
-                  <p><strong>调式：</strong>{song.key}</p>
-                </Card>
-              </Col>
+              <Card key={song.id} className="song-card" hoverable>
+                <div className="song-header">
+                  <div className="song-main-info">
+                    <div className="song-name">{song.name}</div>
+                    <div className="song-artist">{song.artist}</div>
+                  </div>
+                  <Tag color={difficultyColors[song.difficulty]} className="difficulty-tag">
+                    {difficultyLabels[song.difficulty]}
+                  </Tag>
+                </div>
+                
+                <div className="song-meta">
+                  <div className="meta-item">
+                    <span className="meta-icon">🎵</span>
+                    <span className="meta-text">{song.category}</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-icon">⚡</span>
+                    <span className="meta-text">{song.bpm} BPM</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-icon">🎼</span>
+                    <span className="meta-text">{song.key}</span>
+                  </div>
+                </div>
+              </Card>
             ))}
-          </Row>
+          </div>
         )}
       </Spin>
     </div>

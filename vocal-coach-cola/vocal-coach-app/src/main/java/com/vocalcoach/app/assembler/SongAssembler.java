@@ -22,6 +22,7 @@ public class SongAssembler {
         dto.setBpm(song.getBpm());
         dto.setKey(song.getKey());
         dto.setTimeSignature(song.getTimeSignature());
+        dto.setAudioPath(song.getAudioPath());
 
         if (song.getMelodyPattern() != null) {
             dto.setMelodyPattern(song.getMelodyPattern().stream()
@@ -44,6 +45,7 @@ public class SongAssembler {
         song.setBpm(dto.getBpm());
         song.setKey(dto.getKey());
         song.setTimeSignature(dto.getTimeSignature());
+        song.setAudioPath(dto.getAudioPath());
 
         if (dto.getMelodyPattern() != null) {
             song.setMelodyPattern(dto.getMelodyPattern().stream()
