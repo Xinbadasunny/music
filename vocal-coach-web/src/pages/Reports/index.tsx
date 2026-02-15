@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
-import { Typography, Spin, Empty, Popconfirm, Button } from 'antd'
-import { DeleteOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons'
-import { useReportStore } from '../../store'
-import type { Report } from '../../types'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Typography, Spin, Empty, Popconfirm, Button, message } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons'
+import { evaluationApi } from '../../api/evaluation'
+import type { EvaluationResult } from '../../types/evaluation'
 import './index.css'
 
 const { Title, Text } = Typography
@@ -86,14 +87,41 @@ const DimensionBar = ({ label, score }: { label: string; score: number }) => {
 }
 
 export default function ReportsPage() {
-  const { reports, loading, fetchReports, deleteReport } = useReportStore()
+  const navigate = useNavigate()
+  const [evaluations, setEvaluations] = useState<EvaluationResult[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchReports()
-  }, [fetchReports])
+    fetchEvaluations()
+  }, [])
+
+  const fetchEvaluations = async () => {
+    setLoading(true)
+    try {
+      const response = await evaluationApi.listEvaluations()
+      if (response.success && response.data) {
+        setEvaluations(response.data as unknown as EvaluationResult[])
+      }
+    } catch (error) {
+      console.error('Failed to fetch evaluations:', error)
+      message.error('获取评测记录失败')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleDelete = async (id: number) => {
-    await deleteReport(id)
+    try {
+      await evaluationApi.deleteEvaluation(id)
+      message.success('删除成功')
+      fetchEvaluations()
+    } catch (error) {
+      message.error('删除失败')
+    }
+  }
+
+  const handleCardClick = (id: number) => {
+    navigate(`/evaluation/${id}`)
   }
 
   const formatTime = (timestamp: string) => {
@@ -118,47 +146,55 @@ export default function ReportsPage() {
     <div className="reports-page">
       <header className="page-header">
         <Title level={4}>评测报告</Title>
-        <Text type="secondary" className="report-count">{reports.length} 条记录</Text>
+        <Text type="secondary" className="report-count">{evaluations.length} 条记录</Text>
       </header>
 
       <Spin spinning={loading} tip="加载中...">
         <div className="reports-list">
-          {reports.length === 0 ? (
+          {evaluations.length === 0 ? (
             <Empty 
               description="暂无评测报告" 
               style={{ marginTop: '60px' }}
             />
           ) : (
-            reports
-              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-              .map((report) => (
-              <div key={report.id} className="report-card">
+            evaluations
+              .sort((a, b) => new Date(b.evaluatedAt || '').getTime() - new Date(a.evaluatedAt || '').getTime())
+              .map((evaluation) => (
+              <div 
+                key={evaluation.id} 
+                className="report-card"
+                onClick={() => handleCardClick(evaluation.id)}
+              >
                 <div className="card-header">
                   <div className="song-info">
-                    <h3 className="song-name">{report.songName}</h3>
-                    <span className="report-time">{formatTime(report.timestamp)}</span>
+                    <h3 className="song-name">{evaluation.songName}</h3>
+                    <span className="report-time">{formatTime(evaluation.evaluatedAt)}</span>
                   </div>
-                  <CircularProgress score={report.overallScore} size={72} strokeWidth={7} />
+                  <CircularProgress score={evaluation.scores?.overall || 0} size={72} strokeWidth={7} />
                 </div>
 
                 <div className="score-level">
                   <span className="level-label">评价：</span>
-                  <span className="level-value" style={{ color: getScoreColor(report.overallScore) }}>
-                    {getScoreLevel(report.overallScore)}
+                  <span className="level-value" style={{ color: getScoreColor(evaluation.scores?.overall || 0) }}>
+                    {getScoreLevel(evaluation.scores?.overall || 0)}
                   </span>
                 </div>
 
                 <div className="dimensions-section">
-                  <DimensionBar label="音准" score={report.dimensions?.pitch || 0} />
-                  <DimensionBar label="节奏" score={report.dimensions?.rhythm || 0} />
-                  <DimensionBar label="气息" score={report.dimensions?.breath || 0} />
-                  <DimensionBar label="音色" score={report.dimensions?.voice || 0} />
+                  <DimensionBar label="音准" score={evaluation.scores?.pitch || 0} />
+                  <DimensionBar label="节奏" score={evaluation.scores?.rhythm || 0} />
+                  <DimensionBar label="气息" score={evaluation.scores?.breath || 0} />
+                  <DimensionBar label="嗓音" score={evaluation.scores?.voice || 0} />
                 </div>
 
                 <div className="card-footer">
                   <Popconfirm
                     title="确定删除这条报告吗？"
-                    onConfirm={() => handleDelete(report.id)}
+                    onConfirm={(e) => {
+                      e?.stopPropagation()
+                      handleDelete(evaluation.id)
+                    }}
+                    onCancel={(e) => e?.stopPropagation()}
                     okText="确定"
                     cancelText="取消"
                   >
@@ -167,6 +203,7 @@ export default function ReportsPage() {
                       danger 
                       icon={<DeleteOutlined />}
                       className="delete-button"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       删除
                     </Button>

@@ -1,49 +1,93 @@
-import type { Dimensions } from './index'
-
 export interface AnalyzeAudioCmd {
-  audioId: string
-  songId?: number
-  evaluationType?: 'basic' | 'advanced' | 'professional'
+  songName: string
+  audioFilePath: string
+  referenceAudioPath?: string
 }
 
-export interface StrengthsWeaknesses {
-  pitch: string[]
-  rhythm: string[]
-  breath: string[]
-  voice: string[]
+export interface EvaluationScores {
+  overall: number
+  pitch: number
+  rhythm: number
+  voice: number
+  breath: number
+  style?: number
+}
+
+export interface StrengthWeaknessItem {
+  dimension: string
+  title: string
+  description: string
+  icon: string
 }
 
 export interface Advice {
-  category: string
+  dimension: string
   title: string
   description: string
-  actionableSteps: string[]
-  priority: 'high' | 'medium' | 'low'
+  priority: number
 }
 
 export interface CourseRecommendation {
   courseId: string
   courseName: string
-  exerciseId: string
-  exerciseName: string
+  courseIcon: string
   reason: string
-  difficulty: string
-  estimatedDuration: number
+  priority: number
+}
+
+export interface EvaluationFeatures {
+  pitch?: {
+    meanPitch?: number
+    pitchRange?: number
+    pitchStability?: number
+    pitchValues?: number[] | null
+  }
+  rhythm?: {
+    tempo?: number
+    beatRegularity?: number
+    rhythmScore?: number
+  }
+  voice?: {
+    jitter?: number
+    shimmer?: number
+    hnr?: number
+    jitterScore?: number | null
+    shimmerScore?: number | null
+    hnrScore?: number | null
+    voiceScore?: number
+    voiceQuality?: string
+  }
+  timbre?: {
+    mfcc?: number[] | null
+    brightness?: number
+    warmth?: number
+    brightnessLevel?: string
+  }
+  energy?: {
+    energyMean?: number
+    energyStability?: number
+    dynamicRange?: number | null
+    breathControlScore?: number
+  }
+  comparison?: {
+    hasReference?: boolean
+    dtwDistance?: number
+    similarityScore?: number
+  } | null
 }
 
 export interface EvaluationResult {
   id: number
-  audioId: string
-  songId?: number
-  songName?: string
-  overallScore: number
-  dimensions: Dimensions
-  strengths: StrengthsWeaknesses
-  weaknesses: StrengthsWeaknesses
+  songName: string
+  audioPath: string
+  evaluatedAt: string
+  scores: EvaluationScores
+  features?: EvaluationFeatures
+  strengths: StrengthWeaknessItem[]
+  weaknesses: StrengthWeaknessItem[]
   advices: Advice[]
   courseRecommendations: CourseRecommendation[]
-  createdAt: string
-  updatedAt: string
+  aiEvaluation: string
 }
 
 export interface AudioAnalysisResult {
@@ -59,10 +103,10 @@ export interface AudioAnalysisResult {
 }
 
 export interface UploadAudioResponse {
-  audioId: string
-  fileName: string
-  fileSize: number
-  uploadTime: string
+  path: string
+  fileName?: string
+  fileSize?: number
+  uploadTime?: string
 }
 
 export interface EvaluationListItem {

@@ -1,16 +1,21 @@
 import { useState, useRef, useEffect } from 'react'
-import { Button, Progress, Typography, Space, message } from 'antd'
+import { Button, Progress, Typography, Space, message, Upload, Segmented } from 'antd'
 import {
   AudioOutlined,
   PauseCircleOutlined,
   CheckCircleOutlined,
   DeleteOutlined,
   PlayCircleOutlined,
-  StopOutlined
+  StopOutlined,
+  UploadOutlined,
+  CloudUploadOutlined
 } from '@ant-design/icons'
+import type { UploadFile } from 'antd'
 import './index.css'
 
 const { Text } = Typography
+
+type InputMode = 'record' | 'upload'
 
 interface AudioRecorderProps {
   onRecordingComplete: (blob: Blob, duration: number) => void
@@ -23,12 +28,15 @@ export default function AudioRecorder({
   onRecordingClear,
   disabled = false 
 }: AudioRecorderProps) {
+  const [inputMode, setInputMode] = useState<InputMode>('record')
   const [isRecording, setIsRecording] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<UploadFile | null>(null)
+  const [audioDuration, setAudioDuration] = useState(0)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
@@ -136,8 +144,9 @@ export default function AudioRecorder({
 
   const confirmRecording = () => {
     if (audioBlob) {
-      onRecordingComplete(audioBlob, recordingTime)
-      message.success('录音已确认')
+      const duration = audioDuration > 0 ? audioDuration : recordingTime
+      onRecordingComplete(audioBlob, duration)
+      message.success(inputMode === 'upload' ? '音频已确认' : '录音已确认')
     }
   }
 
@@ -148,8 +157,51 @@ export default function AudioRecorder({
     setAudioBlob(null)
     setAudioUrl(null)
     setRecordingTime(0)
+    setAudioDuration(0)
+    setUploadedFile(null)
     audioChunksRef.current = []
     onRecordingClear?.()
+  }
+
+  const handleFileUpload = (file: File) => {
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/webm', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/x-m4a']
+    const isAudio = allowedTypes.some(type => file.type.includes(type.split('/')[1])) || 
+                    file.name.match(/\.(mp3|wav|webm|ogg|m4a|aac|flac)$/i)
+    
+    if (!isAudio) {
+      message.error('请上传音频文件（支持 MP3、WAV、M4A、AAC、OGG、WebM 等格式）')
+      return false
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      message.error('文件大小不能超过 50MB')
+      return false
+    }
+
+    const url = URL.createObjectURL(file)
+    const audio = new Audio(url)
+    
+    audio.onloadedmetadata = () => {
+      const duration = Math.round(audio.duration)
+      setAudioDuration(duration)
+      setRecordingTime(duration)
+      setAudioBlob(file)
+      setAudioUrl(url)
+      setUploadedFile({
+        uid: '-1',
+        name: file.name,
+        status: 'done',
+        size: file.size,
+      })
+      message.success(`已选择: ${file.name}`)
+    }
+
+    audio.onerror = () => {
+      URL.revokeObjectURL(url)
+      message.error('无法读取音频文件，请检查文件格式')
+    }
+
+    return false
   }
 
   const playRecording = () => {
@@ -171,6 +223,13 @@ export default function AudioRecorder({
 
   const maxRecordingTime = 300
 
+  const handleModeChange = (value: string | number) => {
+    if (audioBlob) {
+      clearRecording()
+    }
+    setInputMode(value as InputMode)
+  }
+
   return (
     <div className="audio-recorder">
       {audioUrl && (
@@ -182,7 +241,24 @@ export default function AudioRecorder({
         />
       )}
 
+      {/* 模式切换 */}
       {!isRecording && !audioBlob && (
+        <div className="mode-selector">
+          <Segmented
+            value={inputMode}
+            onChange={handleModeChange}
+            options={[
+              { label: '录制演唱', value: 'record', icon: <AudioOutlined /> },
+              { label: '上传音频', value: 'upload', icon: <CloudUploadOutlined /> },
+            ]}
+            block
+            disabled={disabled}
+          />
+        </div>
+      )}
+
+      {/* 录音模式 - 空闲状态 */}
+      {inputMode === 'record' && !isRecording && !audioBlob && (
         <div className="recorder-idle">
           <Button
             type="primary"
@@ -197,6 +273,25 @@ export default function AudioRecorder({
           <Text type="secondary" className="recorder-hint">
             最长录音时间 5 分钟
           </Text>
+        </div>
+      )}
+
+      {/* 上传模式 - 空闲状态 */}
+      {inputMode === 'upload' && !audioBlob && (
+        <div className="upload-area">
+          <Upload.Dragger
+            accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm,.flac"
+            showUploadList={false}
+            beforeUpload={handleFileUpload}
+            disabled={disabled}
+            className="audio-uploader"
+          >
+            <p className="upload-icon">
+              <UploadOutlined />
+            </p>
+            <p className="upload-text">点击或拖拽音频文件到此处</p>
+            <p className="upload-hint">支持 MP3、WAV、M4A、AAC 等格式，最大 50MB</p>
+          </Upload.Dragger>
         </div>
       )}
 
@@ -236,13 +331,17 @@ export default function AudioRecorder({
         </div>
       )}
 
+      {/* 完成状态（录音或上传） */}
       {!isRecording && audioBlob && (
         <div className="recorder-complete">
           <div className="recording-result">
             <CheckCircleOutlined className="success-icon" />
             <div className="result-info">
-              <Text strong>录音完成</Text>
-              <Text type="secondary">时长: {formatTime(recordingTime)}</Text>
+              <Text strong>{inputMode === 'upload' ? '音频已选择' : '录音完成'}</Text>
+              {uploadedFile && (
+                <Text type="secondary" className="file-name">{uploadedFile.name}</Text>
+              )}
+              <Text type="secondary">时长: {formatTime(audioDuration > 0 ? audioDuration : recordingTime)}</Text>
             </div>
           </div>
 
@@ -260,7 +359,7 @@ export default function AudioRecorder({
               icon={<DeleteOutlined />}
               onClick={clearRecording}
             >
-              重录
+              {inputMode === 'upload' ? '重选' : '重录'}
             </Button>
             <Button
               type="primary"
